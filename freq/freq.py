@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #Frequency Counter Object - Mark Baggett @markbaggett
 #This object is used to count the frequency of characters appearance in text.
+#See https://isc.sans.edu/diary/Detecting+Random+-+Finding+Algorithmically+chosen+DNS+names+%28DGA%29/19893
 import pickle
 
 class CharCount(dict):
