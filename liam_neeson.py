@@ -35,7 +35,7 @@ if len(sys.argv) <= 1:
     sys.exit(0)
 
 if not os.path.exists(args.alt_path):
-   print "File %s not found. If that file has been LOST, you've  obviously asked for Liam's protection after the fact." % (args.alt_path)
+   print "File %s not found. If that file has been Taken, you've  obviously asked for Liam's protection after the fact." % (args.alt_path)
    sys.exit(1)
 
 with open(args.alt_path) as fh:
