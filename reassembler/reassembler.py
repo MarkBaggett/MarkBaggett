@@ -14,28 +14,28 @@ def rfc791(fragmentsin):
     buffer=StringIO.StringIO()
     for pkt in fragmentsin:
          buffer.seek(pkt[IP].frag*8)
-         buffer.write(pkt[IP].payload)
+         buffer.write(pkt[Raw].load)
     return buffer.getvalue()
 
 def first(fragmentsin):
     buffer=StringIO.StringIO()
     for pkt in fragmentsin[::-1]:
          buffer.seek(pkt[IP].frag*8)
-         buffer.write(pkt[IP].payload)
+         buffer.write(pkt[Raw].load)
     return buffer.getvalue()
 
 def bsdright(fragmentsin):
     buffer=StringIO.StringIO()
     for pkt in sorted(fragmentsin, key= lambda x:x[IP].frag):
          buffer.seek(pkt[IP].frag*8)
-         buffer.write(pkt[IP].payload)
+         buffer.write(pkt[Raw].load)
     return buffer.getvalue()
 
 def bsd(fragmentsin):
     buffer=StringIO.StringIO()
     for pkt in sorted(fragmentsin, key=lambda x:x[IP].frag)[::-1]:
          buffer.seek(pkt[IP].frag*8)
-         buffer.write(pkt[IP].payload)
+         buffer.write(pkt[Raw].load)
     return buffer.getvalue()
 
 
@@ -43,7 +43,7 @@ def linux(fragmentsin):
     buffer=StringIO.StringIO()
     for pkt in sorted(fragmentsin, key= lambda x:x[IP].frag, reverse=True):
          buffer.seek(pkt[IP].frag*8)
-         buffer.write(pkt[IP].payload)
+         buffer.write(pkt[Raw].load)
     return buffer.getvalue()
 
 def genjudyfrags():
