@@ -1,8 +1,10 @@
 #!/usr/bin/python
 #Frequency Counter Object - Mark Baggett @markbaggett
 #This object is used to count the frequency of characters appearance in text.
-#See https://isc.sans.edu/diary/Detecting+Random+-+Finding+Algorithmically+chosen+DNS+names+%28DGA%29/19893
+
+from collections import defaultdict
 import pickle
+import sys
 
 class CharCount(dict):
     def __getitem__(self, item):
@@ -68,18 +70,16 @@ kvj"q-(1.`xz2*345&_6907{[$8?,!@#;~)=:",
       return value
 
   def tally_str(self,line,weight=1):
-      """tally_str() accepts two parameters.  A string and optionally you can specify a weight."""
-      wordcount=0
-      if self.ignorecase:
-          line=line.lower()
-      for char in range(len(line)-1):
-          if line[char] in self.ignorechars or line[char+1] in self.ignorechars:
-              continue
-          if line[char+1] in self[line[char]]:
-              self[line[char]][line[char+1]]=self[line[char]][line[char+1]]+(1*weight)
-          else:
-              self[line[char]][line[char+1]]=weight
-      return wordcount
+    """tally_str() accepts two parameters.  A string and optionally you can specify a weight."""
+    wordcount=0
+    for char in range(len(line)-1):
+        if line[char] in self.ignorechars or line[char+1] in self.ignorechars:
+           continue
+        if line[char+1] in self[line[char]]:
+          self[line[char]][line[char+1]]=self[line[char]][line[char+1]]+(1*weight)
+        else:
+          self[line[char]][line[char+1]]=weight
+    return wordcount
 
   def probability(self,string,max_prob=40):
       """This function tells you how probable the letter combination provided is giving the character frequencies. Ex .probability("test") returns ~%35 """
@@ -92,171 +92,152 @@ kvj"q-(1.`xz2*345&_6907{[$8?,!@#;~)=:",
       return sum(probs) / len(probs)
 
   def printtable(self):
-      """ Prints the frequency tables as a python function that can be used to lookup the characters that follow a character.  You can plug the resulting script into a python program to lookup the most frequent character to follow another character.  For example you can call "lookupfreq("q")" and it will return a string containing all the characters in frequency order such as "ustrnalq1f"   where "u" is the most frequenct character to follow "q" and "f" is the least frequent.
-    """
-      print "def lookupfreq(index):"
-      print "    #Although it may not aways be the past data collected.  The current setting for this file are:"
-      print "    #The following characters are currently ignored: %s :" % (self.ignorechars.encode("string_escape"))
-      if self.ignorecase:
-          print "    #It currently ignores case for all calculations."
-      else:
-          print "    #It is currently case sensitive for all calculations."
-      print "    return {"
-      for keys in sorted(self.keys(),reverse=True, key=self.get):
-          print "    \""+str(keys)+"\":",
-          letters=""
-          for subkeys in sorted(self[keys].keys(),reverse=True, key=self[keys].get):
-              letters=letters+subkeys
-          print '"'+letters.encode("string_escape")+'",'
-          print "    }[index]"
+    """ Prints the frequency tables as a python function that can be used to lookup the characters that follow a character.  You can plug the resulting script into a python program to lookup the most frequent character to follow another character.  For example you can call "lookupfreq("q")" and it will return a string containing all the characters in frequency order such as "ustrnalq1f"   where "u" is the most frequenct character to follow "q" and "f" is the least frequent.
+"""
+    print "def lookupfreq(index):"
+    print "    #Although it may not aways be the past data collected.  The current setting for this file are:"
+    print "    #The following characters are currently ignored: %s :" % (self.ignorechars.encode("string_escape"))
+    if self.ignorecase:
+        print "    #It currently ignores case for all calculations."
+    else:
+        print "    #It is currently case sensitive for all calculations."
+    print "    return {"
+    for keys in sorted(self.keys(),reverse=True, key=self.get):
+      print "    \""+str(keys)+"\":",
+      letters=""
+      for subkeys in sorted(self[keys].keys(),reverse=True, key=self[keys].get):
+        letters=letters+subkeys
+      print '"'+letters.encode("string_escape")+'",'
+    print "    }[index]"
 
   def lookup(self,letter):
-      """ Returns a string of characters in frequency order. """
-      if self.ignorecase: letter = letter.lower()
-      return "".join(sorted(self[letter].keys(),reverse=True, key=self[letter].get))
+    """ Returns a string of characters in frequency order. """
+    if self.ignorecase: letter = letter.lower()
+    return "".join(sorted(self[letter].keys(),reverse=True, key=self[letter].get))
 
   def _probability(self,top,sub,max_prob=40):
-      """This internal only function will print the probability that a character will follow another.
-      Example: counter._probability("q","u") - Will tell you the chance that U will follow Q based on the data in the character frequency counter object.  For example,  If you have a Q there is approximately a 30% chance that the next character is a U."""
-      if self.ignorecase:
-          top = top.lower()
-          sub = sub.lower()
-      if not self.has_key(top):
-          return 0
-      all_letter_count = sum(self[top].values())
-      char2_count = 0
-      if self[top].has_key(sub):
-          char2_count = self[top][sub]
-      probab = float(char2_count)/float(all_letter_count)*100
-      if probab > max_prob:
-          probab = max_prob
-      return probab
+    """This internal only function will print the probability that a character will follow another.
+Example: counter._probability("q","u") - Will tell you the chance that U will follow Q based on the data in the character frequency counter object.  For example,  If you have a Q there is approximately a 30% chance that the next character is a U."""
+    ntop = top.upper() if top.islower() else top.lower()
+    nsub = sub.upper() if sub.islower() else top.lower()
+    if self.ignorecase:
+        top = top.lower()
+        sub = sub.lower()
+    if not self.has_key(top):
+        return 0
+    all_letter_count = sum(self[top].values())
+    char2_count = 0
+    if self[top].has_key(sub):
+        char2_count = self[top][sub]
+    if self.ignorecase:
+        all_letter_count += sum(self[ntop].values())
+        char2_count += self[top][nsub]
+        char2_count += self[ntop][sub]
+        char2_count += self[ntop][nsub]
+    probab = float(char2_count)/float(all_letter_count)*100
+    if probab > max_prob:
+        probab = max_prob    
+    return probab
 
   def printraw(self):
-      """Prints the raw python data structure containing the frequency table."""
-      print self
+    """Prints the raw python data structure containing the frequency table."""
+    print self
 
   def save(self,filename):
-      """Saves the raw python data structure from the file specified.  Save and Load are used to write the data structure to disk so you can come back to it later or exchange them with other developers.
+    """Saves the raw python data structure from the file specified.  Save and Load are used to write the data structure to disk so you can come back to it later or exchange them with other developers.
 Example:
 counter.save("/home/user/savedfreqcounter.txt") - save the data structure from disk.
 """
-      try:
-          file_handle =  open(filename, 'wb')
-          data =  [ self.items(), self.ignorechars, self.ignorecase ]
-          pickle.dump(data, file_handle)
-          file_handle.flush()
-          file_handle.close()
-      except Exception as e:
-          print "Unable to write freq file :"+str(e)
-          
+    try:
+        file_handle =  open(filename, 'wb')
+        data =  [ self.items(), self.ignorechars, self.ignorecase ]
+        pickle.dump(data, file_handle)
+        file_handle.flush()
+        file_handle.close()
+    except Exception as e:
+        print "Unable to write freq file :"+str(e)
+        sys.exit(1)
 
   def load(self,filename):
-      """Loads the raw python data structure from the file specified. Load is using the raw data structures. Save and Load are used to write the data structure to disk so you can come back to it later or exchange them with other developers.  This is not the same as tallyfile.  Tallyfile analyzes a files character frequencies.
+    """Loads the raw python data structure from the file specified. Load is using the raw data structures. Save and Load are used to write the data structure to disk so you can come back to it later or exchange them with other developers.  This is not the same as tallyfile.  Tallyfile analyzes a files character frequencies.
 Example:
 counter.load("/home/user/savedfreqcounter.txt") - Loads the data structure from disk.
 """
-      try:
-          file_handle = open(filename, 'rb')
-          stored_values = pickle.load(file_handle)
-          self.update(stored_values[0])
-          self.ignorechars = stored_values[1]
-          self.ignorecase = stored_values[2]
-      except Exception as e:
-          print "Unable to load freq file :"+str(e)
-
+    try:
+        file_handle = open(filename, 'rb')
+        stored_values = pickle.load(file_handle)
+        self.update(stored_values[0])
+        self.ignorechars = stored_values[1]
+        self.ignorecase = stored_values[2]
+    except Exception as e:
+        print "unable to load freq file :"+str(e)
+        sys.exit(1)
 
   def promote(self,top,sub,weight):
-      """Promotes sub up weight positions inside of tops array.
+    """Promotes sub up weight positions inside of tops array.
 Example:
 counter.promote("c","a",5) - a will move up 5 places in c's table
 """
-      chartable=self[top]
-      currentoffset=self.lookup(top).index(sub)
-      if currentoffset<weight:
-          currentoffset=weight
-      movebeforeletter=sorted(chartable.keys(),reverse=True, key=chartable.get)[currentoffset-weight]
-      addthisamount=self[top][movebeforeletter]-self[top][sub]+1
-      self[top][sub]=self[top][sub]+addthisamount
-      return
+    chartable=self[top]
+    currentoffset=self.lookup(top).index(sub)
+    if currentoffset<weight:
+      currentoffset=weight
+    movebeforeletter=sorted(chartable.keys(),reverse=True, key=chartable.get)[currentoffset-weight]
+    addthisamount=self[top][movebeforeletter]-self[top][sub]+1
+    self[top][sub]=self[top][sub]+addthisamount
+    return
 
   def resetcounts(self):
-      """Reset the counts for all of the character frequencies to 1 giving every character an equal probability of following other characters."""
-      for keys in self.keys():
-          for subkeys in self[keys].keys():
-              self[keys][subkeys]=1
+    """Reset the counts for all of the character frequencies to 1 giving every character an equal probability of following other characters."""
+    for keys in self.keys():
+      for subkeys in self[keys].keys():
+        self[keys][subkeys]=1
 
 def main():
     import argparse
     import os
-    import sys
-    import shutil
-
     parser=argparse.ArgumentParser()
     parser.add_argument('-m','--measure',required=False,help='Measure likelihood of a given string',dest='measure')
-    parser.add_argument('-b','--bulk_measure',required=False,help='Measure each line in a file',dest='bulk_measure')
     parser.add_argument('-n','--normal',required=False,help='Update the table based on the following normal string',dest='normal')
     parser.add_argument('-f','--normalfile',required=False,help='Update the table based on the contents of the normal file',dest='normalfile')
     parser.add_argument('-o','--odd',required=False,help='Update the table based on the contents of the odd string. It is not a good idea to use this on random data',dest='odd')
     parser.add_argument('-p','--print',action='store_true',required=False,help='Print a table of the most likely letters in order',dest='printtable')
     parser.add_argument('-c','--create',action='store_true',required=False,help='Create a new empty frequency table',dest='create')
-    parser.add_argument('-v','--verbose',action='store_true',required=False,help='Print verbose output',dest='verbose')
     parser.add_argument('-t','--toggle_case_sensitivity',action='store_true',required=False,help='Ignore case in all future frequecy tabulations',dest='toggle_case')
     parser.add_argument('-M','--max_prob',required=False,default=40,type=int,help='Defines the maximum probability of any character combo. (Prevents "qu" from overpowering stats) Default 40',dest='max_prob')
     parser.add_argument('-P','--promote',required=False,nargs=2,help='This takes 2 characters as arguments.  Given the 2 characters, promote the likelihood of the 2nd in the first by <weight> places',dest='promotelist')
     parser.add_argument('-w','--weight',type=int,default = 1, required=False,help='Affects weight of promote, update and update file (default is 1)',dest='weight')
-    parser.add_argument('-e','--exclude',default = "", required=False,help='Change the list of characters to ignore from the tabulations.',dest='exclude')
+    parser.add_argument('-e','--exclude',default = "\n\t~`!@#$%^&*()_+-", required=False,help='Provide a list of characters to ignore from the tabulations.',dest='exclude')
     parser.add_argument('freqtable',help='File storing character frequencies.')
 
     args=parser.parse_args()
 
     fc = FreqCounter()
-
     if args.create and os.path.exists(args.freqtable):
         print "Frequency table already exists. "+args.freqtable
-        return 1
+        sys.exit(1)
 
     if not args.create:
         if not os.path.exists(args.freqtable):
            print "Frequency Character file not found. - %s " % (args.freqtable)
            return
-        shutil.copyfile(args.freqtable, args.freqtable+".bak")
         fc.load(args.freqtable)
-
-    if args.verbose:
-        print "Ignored characters specified in frequency table are:"+str(fc.ignorechars)
-        print "Case sensitivity is set to "+str(not fc.ignorecase)
 
     if args.printtable: fc.printtable()
     if args.normal: fc.tally_str(args.normal, args.weight)
     if args.odd: fc.tally_str(args.odd, (args.weight * -1))
-    if args.exclude:
-        fc.ignorechars = args.exclude
-        print "Ignored characters changed to "+str(fc.ignorechars)
-    if args.toggle_case:  
-        fc.ignorecase = not fc.ignorecase
-        print "Case sensitivity is now set to "+str(not fc.ignorecase)
+    if args.toggle_case:  fc.ignorecase = not fc.ignorecase
     if args.normalfile:
         try:
             filecontent = open(args.normalfile).read()
         except Exception as e:
-            print "Unable to open normal file. " + str(e)
-            return 1
+            print "Unable to open file. " + str(e)
+            sys.exit(1)
         fc.tally_str(filecontent)
     if args.measure: print fc.probability(args.measure, args.max_prob)
-    if args.bulk_measure:
-        try:
-            filecontent = open(args.bulk_measure).readlines()
-        except Exception as e:
-            print "Unable to open bulk measure file. " + str(e)
-            return 1
-        for eachentry in filecontent:
-            eachentry=eachentry.strip()
-            print "[+]",eachentry, fc.probability(eachentry, args.max_prob)
     if args.promotelist: fc.promote(args.promotelist[0], args.promotelist[1], args.weight)
+
     fc.save(args.freqtable)
 
 if __name__ == "__main__":
     main()
-
-
