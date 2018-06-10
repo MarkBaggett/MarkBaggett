@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+    <title>Hydra</title>
+    <link type="text/css" rel="stylesheet" href="../static/materialize/css/materialize.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../static/semantic.min.css">
+</head>
+<body>
+
+ <nav>
+    <div class="nav teal">
+      <a class="waves-effect waves-light btn">Matrix</a>
+      <a class="waves-effect waves-light btn">Classes</a>
+      <a class="waves-effect waves-light btn">Rooms</a>
+    </div>
+  </nav>
+
+  <div id="Matrix" class="col s12">
+  <table class="centered striped"> 
+    <thead> <tr><th><label>&nbsp</label></th>
+    {% for class in classes %}
+       <th>   <label>{{class}} </label>  </th>
+    {% endfor %}
+    </tr> </thead>
+    <tbody>
+    {% for room in rooms %}
+      <tr>  
+      <td> <label>{{room}}</label> </td> 
+       {% for class in classes %}
+           <td><div class = "switch"><label>Off<input type = "checkbox" checked><span class = "lever"></span>On</label></div></td>
+       {% endfor %} 
+       </tr>
+     {% endfor %}
+     </tbody>
+   </table>
+  </div>
+
+<script type="text/javascript" src="/static/jquery.js"></script>
+<script type="text/javascript" src="/static/materialize/js/materialize.min.js"></script>
+
+   <div id="footer">
+        {% block footer %}
+        &copy; Copyright 2018 by <a href="http://www.sans.org/">SANS</a>.
+        {% endblock %}
+   </div>
+
+</body>
+ 
+</html>
+
+
+
+

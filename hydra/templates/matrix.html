@@ -1,0 +1,81 @@
+{% extends "hydra_base.html" %}
+{% block title %}CLASS ROOM MATRIX{% endblock %}
+{% block matrix %}
+    <h1>Class Matrix</h1>
+    <p class="important">
+      Select the approriate intersections of rooms and classes.
+    </p>
+<table >
+
+  <tr>
+
+    <td style="text-align: center; vertical-align: middle;"> 
+        <label style="text-align:center; vertical-align: middle;"> </label>    
+    </td>
+{% for class in classes %}
+    <td style="text-align: center; vertical-align: middle;"> 
+        <label style="text-align:center; vertical-align: middle;">{{class}} </label>    
+    </td>
+{% endfor %}
+  </tr>
+
+{% for room in rooms %}
+    <tr>  
+
+    <td>  
+        <label> {{room}}</label>    
+    </td>
+   {% for class in classes %}
+
+    <td class="action-checkbox">
+         <input class="action-select" name="{{room}}_{{class}}_checkbox" id="{{room}}_{{class}}" type="checkbox">
+         <label for="{{room}}_{{class}}_action">&nbsp;</label>
+     </td>
+    {% endfor %}
+    </tr>
+{% endfor %}
+
+</table>
+
+
+<!-- Modal Structure -->
+<div id="modal1" class="modal">
+  <div class="modal-content">
+    <h4>Modal Header</h4>
+    <p>A bunch of text</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+  </div>
+</div>
+
+
+<div class="text-align: center">
+<div class="btn-group" >
+  <button type="button" id="addRoom" href="#modal1" class="btn modal-trigger">Add Room</button>
+  <button type="button" id="addClass" class="btn btn-primary">Add Class</button>
+  <button type="button" id="submitMatrix" class="btn btn-primary">Submit Matrix</button>
+</div>
+</div>
+
+
+{% endblock %}
+{% block footer %}
+
+
+<script>
+
+$(document).ready(function(){
+    // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+    $('.modal-trigger').modal();
+  });
+
+$(document).ready( function(){
+console.log("doc ready");
+});
+</script>
+
+{% endblock %}
+
+
+

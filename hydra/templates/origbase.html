@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<head>
+    <title>test</title>
+    <link type="text/css" rel="stylesheet" href="../static/materialize/css/materialize.min.css"  media="screen,projection"/>
+    <link rel="stylesheet" type="text/css" href="../static/semantic.min.css">
+    {% block head %}
+    <link rel="stylesheet" href="style.css" />
+    <title>{% block title %}{% endblock %} - Hydra</title>
+    {% endblock %}
+</head>
+<body>
+    <div id="content">{% block content %}{% endblock %}</div>
+
+   <div id="footer">
+        {% block footer %}
+        &copy; Copyright 2018 by <a href="http://www.sans.org/">SANS</a>.
+        {% endblock %}
+   </div>
+
+</body>
+ 
+</html>
+
+
+
+

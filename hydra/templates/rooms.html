@@ -1,0 +1,88 @@
+{% extends "hydra_base.html" %}
+{% block title %}ROOM< LIST{% endblock %}
+{% block content %}
+  <div id="Rooms" class="col s12">
+  <table class="centered striped"> 
+    <thead> <tr><th><label>&nbsp</label></th><th>ROOM</th><th>SUBNET</th></tr></thead>
+    <tbody>
+    {% for roomdetail in rooms %}
+      <tr id="here"><td><a href="#" onclick="modify_room(this)"><i class="small material-icons">mode_edit</i></a><a href="#" onclick="delete_room(this)"><i class="small material-icons">delete</i></a> </td><td id="room_name">{{roomdetail[0]}}</td><td id="room_subnet">{{roomdetail[1]}}</td><tr> 
+    {% endfor %} 
+     </tbody>
+   </table>
+   <a class="modal-trigger btn-floating btn-small red" href="#add_room_modal" onclick="add_room()"><i class="material-icons">add</i></a>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="add_room_modal" class="modal">
+    <div class="modal-content">
+      <h4>ROOM DETAIL</h4>
+      <form id="modal_form">
+         <p>NAME <input id="modal_form_roomname" type=text name=roomname>
+         <p>SUBNET<input id="modal_form_subnet" type=text name=subnet>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat" onclick="submit_room()">SUBMIT</a>
+    </div>
+  </div>
+
+<script type="text/javascript" src="/static/jquery.js"></script>
+<script type="text/javascript" src="/static/materialize/js/materialize.min.js"></script>
+<script>
+  $(document).ready(function(){
+    $('.modal').modal();
+
+  });
+
+  function add_room() {
+     $("#modal_form_roomname").val("");
+     $("#modal_form_subnet").val("");
+     $('#add_room_modal').modal('open');
+  };
+
+  function modify_room(clicked) {
+     $("#modal_form_roomname").prop("disabled", true);
+     $("#modal_form_roomname").val($(clicked).closest('tr').find("#room_name").text());
+     $("#modal_form_subnet").val($(clicked).closest('tr').find("#room_subnet").text());
+     $('#add_room_modal').modal('open');
+  };
+
+  function submit_room() {
+     $("#modal_form_roomname").prop("disabled", false);
+     console.log( $("#modal_form").serializeArray());
+     let mydata = JSON.stringify($("#modal_form").serializeArray());
+     $.ajax({
+          url: '/setting/room/update',
+          data: mydata,
+          type: 'POST',
+          contentType: "application/json",
+          success: function(response) {
+               location.reload();
+          }
+     });
+   };
+
+   function delete_room(clicked) {
+     if (confirm("Delete Record?")){
+        $.ajax({
+          url: '/setting/room/delete',
+          data: JSON.stringify($(clicked).closest('tr').find("#room_name").text()),
+          type: 'POST',
+          contentType: "application/json",
+          success: function(response) {
+               location.reload();
+          }
+        });
+      };
+    };
+</script>
+
+{% endblock %}
+
+
+{% block footer %}
+{% endblock %}
+
+
+
