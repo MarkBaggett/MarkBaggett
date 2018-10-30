@@ -1,6 +1,6 @@
 The official freq repository moved to http://gitHub.com/markbaggett/freq
 
-"This is not the repo your looking for."
+"This is not the repo you're looking for."
 
 
 <pre>-...........................................--::///+++++oooo+++/::---..........--.------------------
